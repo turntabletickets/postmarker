@@ -38,7 +38,7 @@ class TemplateManager(ModelManager):
         response = self.call("GET", "/templates/%s" % id)
         return self._init_instance(response)
 
-    def create(self, Name, Subject, HtmlBody=None, TextBody=None, Alias=None, TemplateType="Standard", LayoutTemplate=None):
+    def create(self, Name, Subject=None, HtmlBody=None, TextBody=None, Alias=None, TemplateType="Standard", LayoutTemplate=None):
         """Creates a template.
 
         :param Name: Name of template
@@ -50,7 +50,12 @@ class TemplateManager(ModelManager):
         :param LayoutTemplate: The layout template alias to use with this template.
         :return: :py:class:`Template`
         """
-        assert TextBody or HtmlBody, "Provide either email TextBody or HtmlBody or both"
+        if TemplateType == "Standard":
+            assert Subject and (HtmlBody or TextBody), "Standard templates must have both Subject and either HtmlBody or TextBody"
+        elif TemplateType == "Layout":
+            assert not Subject, "Layout templates cannot have a Subject"
+        else:
+            raise ValueError("Invalid template type. Must be either 'Standard' or 'Layout'")
         data = {
             "Name": Name,
             "Subject": Subject,
@@ -130,7 +135,13 @@ class TemplateManager(ModelManager):
         :param LayoutTemplate: An optional string to specify which layout template alias to use to validate a standard template.
         :return: dict
         """
-        assert Subject or HtmlBody or TextBody, "Provide at least Subject, HtmlBody, or TextBody"
+        if TemplateType == "Standard":
+            assert Subject and (HtmlBody or TextBody), "Standard templates must have both Subject and either HtmlBody or TextBody"
+        elif TemplateType == "Layout":
+            assert not Subject, "Layout templates cannot have a Subject"
+        else:
+            raise ValueError("Invalid template type. Must be either 'Standard' or 'Layout'")
+
         data = {
             "Subject": Subject,
             "HtmlBody": HtmlBody,
